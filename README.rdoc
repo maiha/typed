@@ -1,0 +1,71 @@
+= typed
+
+  A Ruby library for Typed variables
+
+
+== DESCRIPTION:
+
+  No more "NoMethodError: undefined method"!
+  We need some typed variables to avoid silly and stealth mistakes.
+
+
+== SYNOPSIS:
+
+  >> vars = Typed::Hash.new
+  => {}
+
+  # Class/Module means not values but type definitions
+  >> vars[:num] = Numeric
+  >> vars[:num] = 10
+  => 10
+  >> vars[:num] = "a"
+  TypeError: num(Fixnum) got String: "a"
+
+  # Types are automatically guessed
+  >> vars[:foo] = 10
+  => 10
+  >> vars[:foo] = "a"
+  TypeError: foo(Fixnum) got String: "a"
+
+  # Referrence without assigned raises error
+  >> vars[:xxx]
+  Typed::NotDefined: 'xxx' is not initialized
+
+  # Hash/Array can be used for complex schema.
+  >> vars[:services] = {Integer => [{Symbol => String}]}
+  >> vars[:services] = {
+       21 => [{:tcp => "ftp"}, {:udp => "fsp"}],
+       25 => [{:tcp => "smtp"}],
+     }
+  => {25=>[{:tcp=>"smtp"}], 21=>[{:tcp=>"ftp"}, {:udp=>"fsp"}]}
+  >> vars[:services] = {22 => {:tcp => "ssh"}}
+  TypeError: services({Integer=>[{Symbol=>String}]}) got {Fixnum=>{Symbol=>String}}: {22=>{:tcp=>"ssh"}}
+
+
+== REQUIREMENTS:
+
+* activesupport gem
+* must gem
+
+
+== CAUTIONS:
+
+* Typed::Hash can't have Class/Module cause they are treated as schema
+* must gem adds Object#must method
+
+
+== INSTALL:
+
+  sudo gem install typed
+
+
+== DOCUMENT:
+
+* http://github.com/maiha/typed
+
+
+== LICENSE:
+
+(The MIT License)
+
+Copyright (c) 2012-2012 maiha@wota.jp
