@@ -32,7 +32,7 @@ module Typed
       else
         expected = @types[key].inspect
         got      = Must::StructInfo.new(val).compact.inspect
-        value    = val.inspect.size > 200 ? val.inspect[0,200] + "..." : val.inspect
+        value    = val.inspect.truncate(200)
         raise TypeError, "%s(%s) got %s: %s" % [key, expected, got, value]
       end
     end

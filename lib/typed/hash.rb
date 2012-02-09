@@ -91,9 +91,9 @@ module Typed
       return @schema.check!(key, self[key]) unless type
 
       self[key].must.struct(type) {
-        summary = self[key].inspect
-        summary = summary[0,200] + "..." if summary.size > 200
-        raise TypeError, "'#{key}' expects '#{type.inspect}', but got #{summary}"
+        got   = Must::StructInfo.new(self[key]).compact.inspect
+        value = self[key].inspect.truncate(200)
+        raise TypeError, "%s(%s) got %s: %s" % [key, type.inspect, got, value]
       }
     end
 
