@@ -77,6 +77,13 @@ describe Typed::Hash do
       data[:foo] = 2
       data[:foo].should == 2
     end
+
+    it "should raise TypeError when schema given twice" do
+      data[:foo] = String
+      lambda {
+        data[:foo] = Integer
+      }.should raise_error(TypeError)
+    end
   end
 
   ######################################################################
