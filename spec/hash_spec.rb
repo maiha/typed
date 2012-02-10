@@ -36,9 +36,12 @@ describe Typed::Hash do
   end
 
   describe "#[]=" do
-    it "should set not data but schema when schema given" do
+    it "should accept as schema when class is given" do
       data[:foo] = String
       data.exist?(:foo).should == false
+
+      data[:bar] = Hash
+      data.exist?(:bar).should == false
     end
 
     it "should check schema if exists" do
@@ -49,8 +52,23 @@ describe Typed::Hash do
       }.should raise_error(TypeError)
     end
 
+    it "should implicitly declare schema when assigned" do
+      data[:foo] = 1
+      data.schema(:foo).should == Fixnum
+
+      data[:bar] = {:a => 1}
+      data.schema(:bar).should == {Symbol => Fixnum}
+    end
+
+    # TODO: How can we declare Boolean? How to treat nil?
+    it "should not implicitly declare schema when nil,true,false" do
+      data[:foo] = nil
+      data.schema(:foo).should == nil
+    end
+
     it "should guess and check schema if not exists" do
       data[:foo] = 1
+      data.schema(:foo).should == Fixnum
       lambda {
         data[:foo] = "test"
       }.should raise_error(TypeError)
@@ -86,31 +104,47 @@ describe Typed::Hash do
     it "should create new objects for Array/Hash is given for schema" do
       data[:a] = []
       data[:a][0] = 1
-      data.schema(:a).should == []
+      data.schema(:a).should == Array
 
       data[:h] = {}
       data[:h]["x"] = 1
-      data.schema(:h).should == {}
+      data.schema(:h).should == Hash
     end
 
-    it "can ovreride schema when given schema is sub-class of existing one" do
+    it "cannot ovreride explicitly declared schema" do
       data[:num] = Numeric
-      data[:num] = 10
-      data.schema(:num).should == Numeric
-      data[:num] = Fixnum
-      data.schema(:num).should == Fixnum
-      data[:num] = 20
-      data.schema(:num).should == Fixnum
+      lambda {
+        data[:num] = Fixnum
+      }.should raise_error(TypeError)
     end
 
     it "can override schema when given schema is sub-struct of existing one" do
       data[:foo] = {}
       data[:foo].should == {}
-      data.schema(:foo).should == {}
+      data.schema(:foo).should == Hash
 
       data[:foo] = {String => Integer}
       data[:foo].should == {}
       data.schema(:foo).should == {String => Integer}
+    end
+
+    it "should implicitly override schema when given schema is sub-struct of existing one" do
+      data[:foo] = {}
+      data[:foo].should == {}
+      data.schema(:foo).should == Hash
+
+      data[:foo] = {:a => 1}
+      data[:foo].should == {:a => 1}
+      data.schema(:foo).should == {Symbol => Fixnum}
+    end
+
+    it "should not override schema if explicit declarement exists" do
+      data[:foo] = Hash
+      data[:foo] = {}
+      data.schema(:foo).should == Hash
+      data[:foo] = {:a => 1}
+      data[:foo].should == {:a => 1}
+      data.schema(:foo).should == Hash
     end
 
     it "raise TypeError when re-declarement causes type mismatch" do

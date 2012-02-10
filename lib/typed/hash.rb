@@ -11,7 +11,7 @@ module Typed
     def initialize(options = {})
       @hash    = {}
       @options = DEFAULT_OPTIONS.merge(options.must(::Hash))
-      @schema  = Schema.new(self)
+      @schema  = Schema.new
       @default = Default.new(self)
     end
 
@@ -55,38 +55,14 @@ module Typed
 
     def []=(key, val)
       if check_schema?(key)
-        if @schema.exist?(key)
-          case val
-          when LazyValue
-            # not schema
-          when [], {}
-            # not schema cause already declared
-          else
-            struct = Must::StructInfo.new(val).compact
-            # when schema format, try to update schema and validate existing value
-            if struct == val
-              @schema[key] = val
-              @schema.check!(key, self[key]) if exist?(key)
-              return
-            end
-          end
-          @schema.check!(key, val)
-
+        case val
+        when LazyValue
+          # not schema
+        when true,false,nil
+          # TODO: How to treat these classes
         else
-          case val
-          when LazyValue
-            # not schema
-          when [], {}
-            # ambiguous
-            @schema[key] = val.dup
-          when nil, true, false
-            # no information
-          else
-            struct = Must::StructInfo.new(val).compact
-            @schema[key] = struct
-            # when schema format, just declare schema and return
-            return if struct == val
-          end
+          @schema.declared?(key, val) and return
+          @schema.validate!(key, val)
         end
       end
       update(key, val)
@@ -104,7 +80,7 @@ module Typed
     end
 
     def check(key, type = nil)
-      return @schema.check!(key, self[key]) unless type
+      return @schema.validate!(key, self[key]) unless type
 
       self[key].must.struct(type) {
         got   = Must::StructInfo.new(self[key]).compact.inspect
