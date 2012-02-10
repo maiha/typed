@@ -63,8 +63,12 @@ module Typed
             # not schema cause already declared
           else
             struct = Must::StructInfo.new(val).compact
-            # when schema format, try update schema
-            @schema[key] = val if struct == val
+            # when schema format, try to update schema and validate existing value
+            if struct == val
+              @schema[key] = val
+              @schema.check!(key, self[key]) if exist?(key)
+              return
+            end
           end
           @schema.check!(key, val)
 
@@ -74,7 +78,7 @@ module Typed
             # not schema
           when [], {}
             # ambiguous
-            @schema[key] = val
+            @schema[key] = val.dup
           when nil, true, false
             # no information
           else

@@ -83,6 +83,16 @@ describe Typed::Hash do
       }.should raise_error(TypeError)
     end
 
+    it "should create new objects for Array/Hash is given for schema" do
+      data[:a] = []
+      data[:a][0] = 1
+      data.schema(:a).should == []
+
+      data[:h] = {}
+      data[:h]["x"] = 1
+      data.schema(:h).should == {}
+    end
+
     it "can ovreride schema when given schema is sub-class of existing one" do
       data[:num] = Numeric
       data[:num] = 10
@@ -91,6 +101,24 @@ describe Typed::Hash do
       data.schema(:num).should == Fixnum
       data[:num] = 20
       data.schema(:num).should == Fixnum
+    end
+
+    it "can override schema when given schema is sub-struct of existing one" do
+      data[:foo] = {}
+      data[:foo].should == {}
+      data.schema(:foo).should == {}
+
+      data[:foo] = {String => Integer}
+      data[:foo].should == {}
+      data.schema(:foo).should == {String => Integer}
+    end
+
+    it "raise TypeError when re-declarement causes type mismatch" do
+      data[:foo] = Numeric
+      data[:foo] = 0.5
+      lambda {
+        data[:foo] = Fixnum
+      }.should raise_error(TypeError)
     end
   end
 
