@@ -56,7 +56,18 @@ module Typed
     def []=(key, val)
       if check_schema?(key)
         if @schema.exist?(key)
+          case val
+          when LazyValue
+            # not schema
+          when [], {}
+            # not schema cause already declared
+          else
+            struct = Must::StructInfo.new(val).compact
+            # when schema format, try update schema
+            @schema[key] = val if struct == val
+          end
           @schema.check!(key, val)
+
         else
           case val
           when LazyValue
@@ -69,6 +80,7 @@ module Typed
           else
             struct = Must::StructInfo.new(val).compact
             @schema[key] = struct
+            # when schema format, just declare schema and return
             return if struct == val
           end
         end

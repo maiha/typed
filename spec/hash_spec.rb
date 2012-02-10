@@ -43,23 +43,7 @@ describe Typed::Hash do
 
     it "should check schema if exists" do
       data[:foo] = String
-
-      lambda {
-        data[:foo] = "foo"
-      }.should_not raise_error(TypeError)
-
-      lambda {
-        data[:foo] = 1
-      }.should raise_error(TypeError)
-    end
-
-    it "should check schema if exists" do
-      data[:foo] = String
-
-      lambda {
-        data[:foo] = "foo"
-      }.should_not raise_error(TypeError)
-
+      data[:foo] = "foo"
       lambda {
         data[:foo] = 1
       }.should raise_error(TypeError)
@@ -78,11 +62,45 @@ describe Typed::Hash do
       data[:foo].should == 2
     end
 
+    it "cannot override existing value when type mismatch" do
+      data[:foo] = 1            # Fixnum
+      lambda {
+        data[:foo] = 0.5        # Float
+      }.should raise_error(TypeError)
+    end
+
+    it "can override existing value if declared by common ancestor" do
+      data[:foo] = Numeric
+      data[:foo] = 1
+      data[:foo] = 0.5
+      data[:foo].should == 0.5
+    end
+
     it "should raise TypeError when schema given twice" do
       data[:foo] = String
       lambda {
         data[:foo] = Integer
       }.should raise_error(TypeError)
+    end
+
+    it "can ovreride schema when given schema is sub-class of existing one" do
+      data[:num] = Numeric
+      data[:num] = 10
+      data.schema(:num).should == Numeric
+      data[:num] = Fixnum
+      data.schema(:num).should == Fixnum
+      data[:num] = 20
+      data.schema(:num).should == Fixnum
+    end
+  end
+
+  ######################################################################
+  ### Reflection
+
+  describe "#schema(key)" do
+    it "should return its schema(type class)" do
+      data[:num] = 1
+      data.schema(:num).should == Fixnum
     end
   end
 

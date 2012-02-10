@@ -16,11 +16,12 @@ module Typed
     end
 
     def []=(key, val)
-      if exist?(key)
-        raise "%s is already typed as `%s'" % [key, @types[key].inspect]
-      else
-        @types[key] = val
-      end
+      # update schema if sub-class, otherwise raises
+      val.must.struct(@types[key]) {
+        raise TypeError, "%s is already typed as `%s'" % [key, @types[key].inspect]
+      } if exist?(key)
+
+      @types[key] = val
     end
 
     def check!(key, val)
