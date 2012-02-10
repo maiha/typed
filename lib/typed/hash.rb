@@ -54,19 +54,43 @@ module Typed
     end
 
     def []=(key, val)
-      if check_schema?(key)
-        case val
-        when LazyValue
-          # not schema
-        when true,false,nil
-          # TODO: How to treat these classes
-        else
-          @schema.declared?(key, val) and return
-          @schema.validate!(key, val)
+      case val
+      when LazyValue
+        # not schema
+        update(key, val)
+      when true,false,nil
+        # TODO: How to treat these classes
+        update(key, val)
+        check(key)
+      else
+        @schema.declare!(key, val)
+        unless @schema.schema?(val)
+          update(key, val)
         end
+        check(key)
       end
-      update(key, val)
     end
+
+=begin
+    def []=(key, val)
+      case @schema.declare_method(val)
+      when LazyValue
+        # not schema
+        update(key, val)
+      when Schema::Ambiguous
+        # TODO: How to treat these classes
+        update(key, val)
+        check(key)
+      when Schema::Declared
+        @schema.declared?(key, val)
+        check(key)
+      else
+        @schema.declared?(key, val)
+        update(key, val)
+        check(key)
+      end
+    end
+=end
 
     ######################################################################
     ### Testing
@@ -80,13 +104,11 @@ module Typed
     end
 
     def check(key, type = nil)
-      return @schema.validate!(key, self[key]) unless type
+      return unless exist?(key)
+      return if @hash[key].is_a?(LazyValue)
 
-      self[key].must.struct(type) {
-        got   = Must::StructInfo.new(self[key]).compact.inspect
-        value = self[key].inspect.truncate(200)
-        raise TypeError, "%s(%s) got %s: %s" % [key, type.inspect, got, value]
-      }
+      type ||= @schema[key]
+      @schema.validate!(key, self[key], type)
     end
 
     ######################################################################

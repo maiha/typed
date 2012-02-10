@@ -2,7 +2,7 @@ module Typed
   class Schema
     NotFound = Class.new(RuntimeError)
     Declared = Struct.new(:klass)
-
+    class Ambiguous; end
     class Implicit < Declared; end
     class Explicit < Declared; end
     class None     < Declared; end
@@ -22,6 +22,17 @@ module Typed
       return struct
     end
 
+    def self.declare_method(val)
+      case val
+      when LazyValue; val
+      when true,false,nil; Ambiguous.new
+      else
+        schema?(val) ? Declared.new : None.new
+      end
+    end
+
+    delegate :schema?, :declare_method, :to => "self.class"
+
     def initialize
       @types = ::Hash.new{ None.new }
     end
@@ -34,21 +45,20 @@ module Typed
       @types[key].klass
     end
 
-    # return true if given data is accepted as schema
-    def declared?(key, val)
+    def declare!(key, val)
       type  = @types[key]
       klass = type.klass
 
       if self.class.schema?(val)
         case type
         when Explicit
-          raise TypeError, "%s is already typed as `%s'" % [key, klass.inspect]
+          raise TypeError, "%s has already been declared as `%s'" % [key, klass.inspect]
         when Implicit
           # update schema if sub-class, otherwise raises
-          val.must.struct(klass) {raise TypeError, "%s is already typed as `%s'" % [key, klass.inspect]}
+          val.must.struct(klass) {raise TypeError, "%s has already been typed as `%s'" % [key, klass.inspect]}
           explicit(key, val)
         else
-          explicit(key,val)
+          explicit(key, val)
         end
         return true
 
@@ -70,9 +80,9 @@ module Typed
       end
     end
 
-    def validate!(key, val)
-      klass = self[key] or
-        raise Schema::NotFound, key.to_s
+    def validate!(key, val, klass)
+      return true unless klass
+#      raise Schema::NotFound, key.to_s unless klass
 
       if val.must.struct?(klass)
         return true 

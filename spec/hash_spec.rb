@@ -60,18 +60,21 @@ describe Typed::Hash do
       data.schema(:bar).should == {Symbol => Fixnum}
     end
 
+    it "should implicitly declare schema if not exists" do
+      data[:foo] = 1
+      data.schema(:foo).should == Fixnum
+    end
+
     # TODO: How can we declare Boolean? How to treat nil?
     it "should not implicitly declare schema when nil,true,false" do
       data[:foo] = nil
       data.schema(:foo).should == nil
-    end
 
-    it "should guess and check schema if not exists" do
-      data[:foo] = 1
-      data.schema(:foo).should == Fixnum
-      lambda {
-        data[:foo] = "test"
-      }.should raise_error(TypeError)
+      data[:bar] = true
+      data.schema(:bar).should == nil
+
+      data[:baz] = false
+      data.schema(:baz).should == nil
     end
 
     it "can override existing value if same type" do
@@ -94,14 +97,7 @@ describe Typed::Hash do
       data[:foo].should == 0.5
     end
 
-    it "should raise TypeError when schema given twice" do
-      data[:foo] = String
-      lambda {
-        data[:foo] = Integer
-      }.should raise_error(TypeError)
-    end
-
-    it "should create new objects for Array/Hash is given for schema" do
+    it "should create new objects for Array,Hash is given for schema" do
       data[:a] = []
       data[:a][0] = 1
       data.schema(:a).should == Array
@@ -111,14 +107,22 @@ describe Typed::Hash do
       data.schema(:h).should == Hash
     end
 
-    it "cannot ovreride explicitly declared schema" do
+    it "should check existing value when explicit declarement is given" do
+      data[:foo] = {}
+      data[:foo][:a] = 1
+      lambda {
+        data[:foo] = {String => Integer}
+      }.should raise_error(TypeError)
+    end
+
+    it "cannot ovreride explicit declarement" do
       data[:num] = Numeric
       lambda {
         data[:num] = Fixnum
       }.should raise_error(TypeError)
     end
 
-    it "can override schema when given schema is sub-struct of existing one" do
+    it "can override implicitly declared schema by sub-struct schema" do
       data[:foo] = {}
       data[:foo].should == {}
       data.schema(:foo).should == Hash
@@ -138,10 +142,11 @@ describe Typed::Hash do
       data.schema(:foo).should == {Symbol => Fixnum}
     end
 
-    it "should not override schema if explicit declarement exists" do
+    it "should not override schema if explicitly declarement exists" do
       data[:foo] = Hash
       data[:foo] = {}
       data.schema(:foo).should == Hash
+
       data[:foo] = {:a => 1}
       data[:foo].should == {:a => 1}
       data.schema(:foo).should == Hash
