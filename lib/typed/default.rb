@@ -12,7 +12,7 @@ module Typed
     def regsiter_lazy(key, block)
       return if @kvs.exist?(key)
       raise ArgumentError, "Lazy default value needs block: #{key}" unless block
-      @kvs[key] = LazyValue.new(block)
+      @kvs[key] = Schema::LazyValue.new(block)
     end
   end
 end

@@ -1,11 +1,12 @@
 module Typed
   class Schema
     NotFound = Class.new(RuntimeError)
-    Declared = Struct.new(:klass)
-    class Ambiguous; end
-    class Implicit < Declared; end
-    class Explicit < Declared; end
-    class None     < Declared; end
+    Declared = Struct.new(:value)
+    class Ambiguous < Declared; end
+    class Implicit  < Declared; end
+    class Explicit  < Declared; end
+    class Nothing   < Declared; end
+    class LazyValue < Declared; end
 
     def self.schema?(obj)
       return true  if obj.is_a?(Class) or obj.is_a?(Module)
@@ -25,15 +26,15 @@ module Typed
     def self.declare_method(val)
       case val
       when LazyValue; val
-      when true,false,nil; Ambiguous.new
-      else; schema?(val) ? Explicit.new(val) : None.new
+      when true,false,nil; Ambiguous.new(val)
+      else; schema?(val) ? Explicit.new(val) : Implicit.new(val)
       end
     end
 
     delegate :schema?, :declare_method, :to => "self.class"
 
     def initialize
-      @types = ::Hash.new{ None.new }
+      @types = ::Hash.new{ Nothing.new }
     end
 
     def definition(key)
@@ -41,12 +42,12 @@ module Typed
     end
 
     def [](key)
-      @types[key].klass
+      @types[key].value
     end
 
     def declare!(key, val)
       type  = @types[key]
-      klass = type.klass
+      klass = type.value
 
       if self.class.schema?(val)
         case type
@@ -55,10 +56,8 @@ module Typed
         when Implicit
           # update schema if sub-class, otherwise raises
           val.must.struct(klass) {raise TypeError, "%s has already been typed as `%s'" % [key, klass.inspect]}
-          explicit(key, val)
-        else
-          explicit(key, val)
         end
+        explicit(key, val)
 
       else
         case type

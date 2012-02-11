@@ -54,8 +54,9 @@ module Typed
     end
 
     def []=(key, val)
-      case @schema.declare_method(val)
-      when LazyValue
+      declare = @schema.declare_method(val)
+      case declare
+      when Schema::LazyValue
         # not schema
         update(key, val)
       when Schema::Ambiguous
@@ -65,10 +66,12 @@ module Typed
       when Schema::Explicit
         @schema.declare!(key, val)
         check(key) if exist?(key)
-      else
+      when Schema::Implicit
         @schema.declare!(key, val)
         update(key, val)
         check(key)
+      else
+        raise "[BUG] no assignment logic for: #{declare.class}"
       end
     end
 
@@ -84,9 +87,6 @@ module Typed
     end
 
     def check(key, type = nil)
-#      return unless exist?(key)
-      return if @hash[key].is_a?(LazyValue)
-
       type ||= @schema[key]
       @schema.validate!(key, self[key], type)
     end
@@ -117,8 +117,8 @@ module Typed
       def load(key)
         # LazyValue should be evaluated at runtime
         value = @hash[key]
-        if value.is_a?(LazyValue)
-          value = value.block.call 
+        if value.is_a?(Schema::LazyValue)
+          value = value.value.call 
           self[key] = value
         end
         return value
