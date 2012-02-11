@@ -64,14 +64,14 @@ module Typed
         update(key, val)
         check(key)
       when Schema::Explicit
-        @schema.declare!(key, val)
+        @schema.declare!(key, declare)
         check(key) if exist?(key)
       when Schema::Implicit
-        @schema.declare!(key, val)
+        @schema.declare!(key, declare)
         update(key, val)
         check(key)
       else
-        raise "[BUG] no assignment logic for: #{declare.class}"
+        raise NotImplementedError, "[BUG] no assignment logic for: #{declare.class}"
       end
     end
 
@@ -115,12 +115,11 @@ module Typed
 
     private
       def load(key)
-        # LazyValue should be evaluated at runtime
         value = @hash[key]
-        if value.is_a?(Schema::LazyValue)
-          value = value.value.call 
-          self[key] = value
-        end
+
+        # LazyValue should be evaluated at runtime
+        return (self[key] = value.value.call) if value.is_a?(Schema::LazyValue)
+
         return value
       end
 
