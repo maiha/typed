@@ -26,8 +26,7 @@ module Typed
       case val
       when LazyValue; val
       when true,false,nil; Ambiguous.new
-      else
-        schema?(val) ? Declared.new : None.new
+      else; schema?(val) ? Explicit.new(val) : None.new
       end
     end
 
@@ -60,12 +59,11 @@ module Typed
         else
           explicit(key, val)
         end
-        return true
 
       else
         case type
         when Explicit
-          return false
+          # nop
         when Implicit
           # update schema if sub-struct
           struct = self.class.struct(val)
@@ -75,8 +73,6 @@ module Typed
         else          
           implicit(key, self.class.struct(val))
         end
-
-        return false
       end
     end
 

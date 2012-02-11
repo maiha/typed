@@ -54,25 +54,6 @@ module Typed
     end
 
     def []=(key, val)
-      case val
-      when LazyValue
-        # not schema
-        update(key, val)
-      when true,false,nil
-        # TODO: How to treat these classes
-        update(key, val)
-        check(key)
-      else
-        @schema.declare!(key, val)
-        unless @schema.schema?(val)
-          update(key, val)
-        end
-        check(key)
-      end
-    end
-
-=begin
-    def []=(key, val)
       case @schema.declare_method(val)
       when LazyValue
         # not schema
@@ -81,16 +62,15 @@ module Typed
         # TODO: How to treat these classes
         update(key, val)
         check(key)
-      when Schema::Declared
-        @schema.declared?(key, val)
-        check(key)
+      when Schema::Explicit
+        @schema.declare!(key, val)
+        check(key) if exist?(key)
       else
-        @schema.declared?(key, val)
+        @schema.declare!(key, val)
         update(key, val)
         check(key)
       end
     end
-=end
 
     ######################################################################
     ### Testing
@@ -104,7 +84,7 @@ module Typed
     end
 
     def check(key, type = nil)
-      return unless exist?(key)
+#      return unless exist?(key)
       return if @hash[key].is_a?(LazyValue)
 
       type ||= @schema[key]
