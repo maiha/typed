@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "activesupport"
-  s.add_dependency "must", ">= 0.2.5"
+  s.add_dependency "must", ">= 0.2.6"
 
   s.add_development_dependency "rspec"
 end
