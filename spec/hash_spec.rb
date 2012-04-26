@@ -269,5 +269,12 @@ describe Typed::Hash do
       data[:foo].should == 2
     end
   end
+
+  ######################################################################
+  ### Changes
+
+  describe "#changes" do
+    its(:changes) {should be_kind_of(Typed::Changes)}
+  end
 end
 

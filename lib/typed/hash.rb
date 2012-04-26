@@ -7,12 +7,14 @@ module Typed
     }
 
     delegate :keys, :to=>"@hash"
+    attr_reader :changes
 
     def initialize(options = {})
       @hash    = {}
       @options = DEFAULT_OPTIONS.merge(options.must(::Hash))
       @schema  = Schema.new
       @default = Default.new(self)
+      @changes = Changes.new
     end
 
     ######################################################################
@@ -51,6 +53,7 @@ module Typed
 
     def update(key, val)
       @hash[key] = val
+      @changes.touch(key)
     end
 
     def []=(key, val)

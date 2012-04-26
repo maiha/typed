@@ -1,12 +1,27 @@
 = typed
 
-  A Ruby library for Typed variables
+A Ruby library for Typed variables
 
 
 == DESCRIPTION:
 
-  No more "NoMethodError: undefined method"!
-  We need some typed variables to avoid silly and stealth mistakes.
+No more "NoMethodError: undefined method"!
+We need some typed variables to avoid silly and stealth mistakes.
+
+  # Ruby
+  irb> name = "foo"
+  irb> name = 10
+
+  # Scala
+  scala> var name = "foo"
+  scala> name = 10
+  <console>:8: error: type mismatch;
+
+  # Ruby + typed.gem
+  irb> vars = Typed::Hash.new
+  irb> vars[:name] = "foo"
+  irb> vars[:name] = 10
+  TypeError: name(String) got Fixnum: 10
 
 
 == SYNOPSIS:
@@ -40,6 +55,17 @@
   => {25=>[{:tcp=>"smtp"}], 21=>[{:tcp=>"ftp"}, {:udp=>"fsp"}]}
   >> vars[:services] = {22 => {:tcp => "ssh"}}
   TypeError: services({Integer=>[{Symbol=>String}]}) got {Fixnum=>{Symbol=>String}}: {22=>{:tcp=>"ssh"}}
+
+  # changes object tells whether a key is changed or not
+  >> vars = Typed::Hash.new
+  >> vars.changes.keys
+  => [] 
+  >> vars[:a] = 1
+  >> vars.changes.keys
+  => [:a] 
+  >> vars.changes.reset
+  >> vars.changes.keys
+  => [] 
 
 
 == REQUIREMENTS:

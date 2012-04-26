@@ -6,7 +6,8 @@ require "typed/hash"
 module Typed
   NotDefined = Class.new(RuntimeError)
 
-  autoload :Default, "typed/default"
   autoload :Schema , "typed/schema"
+  autoload :Default, "typed/default"
+  autoload :Changes, "typed/changes"
 end
 
