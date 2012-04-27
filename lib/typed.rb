@@ -9,5 +9,6 @@ module Typed
   autoload :Schema , "typed/schema"
   autoload :Default, "typed/default"
   autoload :Changes, "typed/changes"
+  autoload :Events , "typed/events"
 end
 
