@@ -56,6 +56,9 @@ We need some typed variables to avoid silly and stealth mistakes.
   >> vars[:services] = {22 => {:tcp => "ssh"}}
   TypeError: services({Integer=>[{Symbol=>String}]}) got {Fixnum=>{Symbol=>String}}: {22=>{:tcp=>"ssh"}}
 
+
+== Changes
+
   # changes object tells whether a key is changed or not
   >> vars = Typed::Hash.new
   >> vars.changes.keys
@@ -66,6 +69,17 @@ We need some typed variables to avoid silly and stealth mistakes.
   >> vars.changes.reset
   >> vars.changes.keys
   => [] 
+
+
+== Events
+
+  # events allows user to use callback about :read,:write
+  >> vars = Typed::Hash.new
+  >> vars[:a] = 1
+  >> vars.events.on(:read){|k,v| puts "reading #{k}"}
+  >> vars[:a]
+  reading a
+  => 1
 
 
 == REQUIREMENTS:

@@ -8,6 +8,7 @@ module Typed
 
     delegate :keys, :to=>"@hash"
     attr_reader :changes
+    attr_reader :events
 
     def initialize(options = {})
       @hash    = {}
@@ -15,6 +16,7 @@ module Typed
       @schema  = Schema.new
       @default = Default.new(self)
       @changes = Changes.new
+      @events  = Events.new
     end
 
     ######################################################################
@@ -44,7 +46,9 @@ module Typed
 
     def [](key)
       if exist?(key)
-        return load(key)
+        val = load(key)
+        @events.fire(:read, key, val)
+        return val
       else
         from = caller.is_a?(Array) ? caller.first : self.class
         raise NotDefined, "'#{key}' is not initialized\n#{from}"
@@ -53,6 +57,7 @@ module Typed
 
     def update(key, val)
       @hash[key] = val
+      @events.fire(:write, key, val)
       @changes.touch(key)
     end
 
