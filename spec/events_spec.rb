@@ -30,5 +30,17 @@ describe Typed::Events do
     data[:c] = 5
     written.should == [[:a,3], [:c,5]]
   end
+
+  it "should not fire :read event on :write" do
+    data = Typed::Hash.new
+
+    read = []
+    data.events.on(:read) {|k,v|
+      read << [k,v]
+    }
+
+    data[:x] = 10
+    read.should == []
+  end
 end
 
