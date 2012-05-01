@@ -96,7 +96,7 @@ module Typed
 
     def check(key, type = nil)
       type ||= @schema[key]
-      @schema.validate!(key, self[key], type)
+      @schema.validate!(key, @hash[key], type)
     end
 
     ######################################################################
