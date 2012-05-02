@@ -113,6 +113,14 @@ module Typed
       keys.map{|key| self[key]}
     end
 
+    def merge!(hash)
+      hash.each_pair do |key, val|
+        self[key] = val
+      end
+
+      return self
+    end
+
     ######################################################################
     ### Conversions
 
