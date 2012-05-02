@@ -24,7 +24,7 @@ module Typed
 
     def default(key = nil, &block)
       if key
-        @default.regsiter_lazy(key, block)
+        @default.register_lazy(key, block)
       else
         @default
       end
