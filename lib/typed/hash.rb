@@ -114,6 +114,13 @@ module Typed
     end
 
     ######################################################################
+    ### Conversions
+
+    def path(key)
+      self[key].must.coerced(Pathname, String=>proc{|i| Pathname(i)})
+    end
+
+    ######################################################################
     ### Utils
 
     def inspect
