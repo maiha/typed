@@ -47,7 +47,7 @@ module Typed
     def [](key)
       if exist?(key)
         val = load(key)
-        @events.fire(:read, key, val)
+        @events.fire(:read, key.to_s, val)
         return val
       else
         from = caller.is_a?(Array) ? caller.first : self.class
@@ -56,8 +56,8 @@ module Typed
     end
 
     def update(key, val)
-      @hash[key] = val
-      @events.fire(:write, key, val)
+      @hash[key.to_s] = val
+      @events.fire(:write, key.to_s, val)
       @changes.touch(key)
     end
 
@@ -87,7 +87,7 @@ module Typed
     ### Testing
 
     def exist?(key)
-      @hash.has_key?(key)
+      @hash.has_key?(key.to_s)
     end
 
     def set?(key)
@@ -96,7 +96,7 @@ module Typed
 
     def check(key, type = nil)
       type ||= @schema[key]
-      @schema.validate!(key, @hash[key], type)
+      @schema.validate!(key, @hash[key.to_s], type)
     end
 
     ######################################################################
@@ -117,13 +117,13 @@ module Typed
     ### Utils
 
     def inspect
-      keys = @hash.keys.map(&:to_s).sort.join(',')
+      keys = @hash.keys.sort.join(',')
       "{#{keys}}"
     end
 
     private
       def load(key)
-        value = @hash[key]
+        value = @hash[key.to_s]
 
         # LazyValue should be evaluated at runtime
         return (self[key] = value.value.call) if value.is_a?(Schema::LazyValue)

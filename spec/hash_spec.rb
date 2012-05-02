@@ -22,16 +22,23 @@ describe Typed::Hash do
     data.values.sort.should == [1, 2]
   end
 
-  describe "#[]" do
-    it "should return value if exists" do
-      data[:foo] = 1
-      data[:foo].should == 1
-    end
+  it "should stringify keys" do
+    data["a"] = 1
+    data[:a].should == 1
+    data[:a] = 2
+    data["a"].should == 2
+  end
 
+  describe "#[]" do
     it "should raise NotDefined if value not exists" do
       lambda {
-        data[:foo]
+        data["foo"]
       }.should raise_error(Typed::NotDefined)
+    end
+
+    it "should return value if exists" do
+      data["foo"] = 1
+      data["foo"].should == 1
     end
   end
 
