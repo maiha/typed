@@ -65,7 +65,7 @@ We need some typed variables to avoid silly and stealth mistakes.
   => [] 
   >> vars[:a] = 1
   >> vars.changes.keys
-  => [:a] 
+  => ["a"] 
   >> vars.changes.reset
   >> vars.changes.keys
   => [] 
@@ -92,6 +92,7 @@ We need some typed variables to avoid silly and stealth mistakes.
 
 * Typed::Hash can't assign Class/Module cause they are treated as type definitions
 * must gem adds Object#must method
+* All keys are forced to String [since: verson 0.2.0]
 
 
 == INSTALL:
