@@ -38,34 +38,34 @@ module Typed
     end
 
     def definition(key)
-      @types[key]
+      @types[key.to_s]
     end
 
     def [](key)
-      @types[key].value
+      @types[key.to_s].value
     end
 
     def declare!(key, declare)
       case declare.must.be.kind_of(Explicit, Implicit)
       when Explicit
-        case @types[key]
+        case @types[key.to_s]
         when Explicit
-          raise TypeError, "%s has already been declared as `%s'" % [key, @types[key].value.inspect]
+          raise TypeError, "%s has already been declared as `%s'" % [key, @types[key.to_s].value.inspect]
         when Implicit
           # update schema if sub-class, otherwise raises
-          declare.value.must.struct?(@types[key].value) or
-            raise TypeError, "%s has already been typed as `%s'" % [key, @types[key].value.inspect]
+          declare.value.must.struct?(@types[key.to_s].value) or
+            raise TypeError, "%s has already been typed as `%s'" % [key, @types[key.to_s].value.inspect]
         end
         explicit(key, declare)
 
       when Implicit
-        case @types[key]
+        case @types[key.to_s]
         when Explicit
           # nop
         when Implicit
           # update schema if sub-struct
           struct = self.class.struct(declare.value)
-          if struct.must.struct?(@types[key].value)
+          if struct.must.struct?(@types[key.to_s].value)
             implicit(key, struct)
           end
         else          
@@ -91,12 +91,12 @@ module Typed
     private
       def implicit(key, val)
         val = Implicit.new(val) unless val.is_a?(Implicit)
-        @types[key] = val
+        @types[key.to_s] = val
       end
 
       def explicit(key, val)
         val = Explicit.new(val) unless val.is_a?(Explicit)
-        @types[key] = val
+        @types[key.to_s] = val
       end
   end
 end

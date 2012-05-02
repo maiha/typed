@@ -13,7 +13,7 @@ describe Typed::Events do
 
     data[:a]
 
-    read.should == [[:a,1]]
+    read.should == [["a",1]]
   end
 
   it "should observe :write event" do
@@ -28,7 +28,7 @@ describe Typed::Events do
 
     data[:a] = 3
     data[:c] = 5
-    written.should == [[:a,3], [:c,5]]
+    written.should == [["a",3], ["c",5]]
   end
 
   it "should not fire :read event on :write" do

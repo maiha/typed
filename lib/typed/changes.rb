@@ -9,7 +9,7 @@ module Typed
     end
 
     def touch(key)
-      @hash[key] = Time.now
+      @hash[key.to_s] = Time.now
     end
 
     def keys
