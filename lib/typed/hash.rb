@@ -24,7 +24,7 @@ module Typed
 
     def default(key = nil, &block)
       if key
-        @default.regsiter_lazy(key, block)
+        @default.register_lazy(key, block)
       else
         @default
       end
@@ -111,6 +111,21 @@ module Typed
 
     def values
       keys.map{|key| self[key]}
+    end
+
+    def merge!(hash)
+      hash.each_pair do |key, val|
+        self[key] = val
+      end
+
+      return self
+    end
+
+    ######################################################################
+    ### Conversions
+
+    def path(key)
+      self[key].must.coerced(Pathname, String=>proc{|i| Pathname(i)})
     end
 
     ######################################################################
