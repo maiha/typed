@@ -78,7 +78,7 @@ module Typed
       return true unless klass
 #      raise Schema::NotFound, key.to_s unless klass
 
-      if val.must.struct?(klass)
+      if struct?(val, klass)
         return true 
       else
         expected = klass.inspect
@@ -89,6 +89,11 @@ module Typed
     end
 
     private
+      def struct?(val, klass)
+        return true if klass == Object
+        return val.must.struct?(klass)
+      end
+
       def implicit(key, val)
         val = Implicit.new(val) unless val.is_a?(Implicit)
         @types[key.to_s] = val
