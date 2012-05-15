@@ -128,6 +128,10 @@ module Typed
       self[key].must.coerced(Pathname, String=>proc{|i| Pathname(i)})
     end
 
+    def time(key)
+      self[key].must.coerced(Time, Fixnum=>proc{|i| Time.at(i)})
+    end
+
     ######################################################################
     ### Utils
 
