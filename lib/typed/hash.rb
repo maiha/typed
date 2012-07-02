@@ -132,6 +132,10 @@ module Typed
       self[key].must.coerced(Time, Fixnum=>proc{|i| Time.at(i)})
     end
 
+    def utc(key)
+      Time.at(self[key].to_i).utc
+    end
+
     ######################################################################
     ### Utils
 

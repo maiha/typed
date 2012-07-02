@@ -22,5 +22,12 @@ describe Typed::Hash do
       }.should raise_error(Must::Invalid)
     end
   end
+
+  describe "#utc" do
+    subject { data["now"] = 100; data.utc("now") }
+    its(:class) { should == Time  }
+    its(:zone)  { should == "UTC" }
+    its(:to_i)  { should == 100   }
+  end
 end
 
