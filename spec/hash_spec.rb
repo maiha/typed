@@ -129,6 +129,27 @@ describe Typed::Hash do
       }.should raise_error(TypeError)
     end
 
+    it "should accept atomic class (like Fixnum) for its schema" do
+      data[:foo] = 1
+      lambda {
+        data[:foo] = Fixnum
+      }.should_not raise_error
+    end
+
+    it "should accept complex classes (like [Fixnum]) for its schema" do
+      data[:foo] = [1]
+      lambda {
+        data[:foo] = [Fixnum]
+      }.should_not raise_error
+    end
+
+    it "should accept complex classes (like {String=>Fixnum}) for its schema" do
+      data[:foo] = {"a" => 1}
+      lambda {
+        data[:foo] = {String => Fixnum}
+      }.should_not raise_error
+    end
+
     it "can override implicitly declared schema by sub-struct schema" do
       data[:foo] = {}
       data[:foo].should == {}
