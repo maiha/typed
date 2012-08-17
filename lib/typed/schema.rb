@@ -52,9 +52,11 @@ module Typed
         when Explicit
           raise TypeError, "%s has already been declared as `%s'" % [key, @types[key.to_s].value.inspect]
         when Implicit
-          # update schema if same or sub-class, otherwise raises
-          declare.value == @types[key.to_s].value or # need this hack due to bug of Must#struct?
-          declare.value.must.struct?(@types[key.to_s].value) or
+          type = @types[key.to_s].value
+          # update schema if same or sub-class or ancestor, otherwise raises
+          declare.value == type            or # need this hack due to bug of Must#struct?
+          declare.value.must.struct?(type) or # sub-class
+          type.must.struct?(declare.value) or # ancestor
             raise TypeError, "%s has already been typed as `%s'" % [key, @types[key.to_s].value.inspect]
           explicit(key, declare)
         else          
