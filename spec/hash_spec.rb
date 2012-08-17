@@ -136,6 +136,36 @@ describe Typed::Hash do
       }.should_not raise_error
     end
 
+    it "should accept atomic ancestor class (like Numeric) for its schema" do
+      data[:foo] = 1
+      data.schema(:foo).should == Fixnum # implicitly defined
+      lambda {
+        data[:foo] = Numeric
+      }.should_not raise_error
+      data.schema(:foo).should == Numeric
+    end
+
+=begin
+    it "should accept atomic ancestor class (like Object) for its schema" do
+      data[:foo] = [:a]
+      data.schema(:foo).should == [Symbol] # implicitly defined
+      lambda {
+        data[:foo] = Object
+      }.should_not raise_error
+      data.schema(:foo).should == Object
+      data[:foo] = 1
+      data[:foo].should == 1
+    end
+=end
+
+    it "should reject atomic non-ancestor class (like String) for its schema" do
+      data[:foo] = 1
+      data.schema(:foo).should == Fixnum # implicitly defined
+      lambda {
+        data[:foo] = String
+      }.should raise_error(TypeError)
+    end
+
     it "should accept complex classes (like [Fixnum]) for its schema" do
       data[:foo] = [1]
       lambda {
@@ -148,6 +178,24 @@ describe Typed::Hash do
       lambda {
         data[:foo] = {String => Fixnum}
       }.should_not raise_error
+    end
+
+=begin
+    it "should accept complex ancestor class (like {String=>Integer}) for its schema" do
+      data[:foo] = {"a" => 1}
+      data.schema(:foo).should == {String => Fixnum} # implicitly defined
+      lambda {
+        data[:foo] = {String => Integer}
+      }.should_not raise_error
+      data.schema(:foo).should == {String => Integer}
+    end
+=end
+
+    it "should reject complex non-ancestor class (like String) for its schema" do
+      data[:foo] = {"a" => 1}
+      lambda {
+        data[:foo] = {String => Symbol}
+      }.should raise_error(TypeError)
     end
 
     it "can override implicitly declared schema by sub-struct schema" do
