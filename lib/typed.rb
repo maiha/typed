@@ -10,5 +10,6 @@ module Typed
   autoload :Default, "typed/default"
   autoload :Changes, "typed/changes"
   autoload :Events , "typed/events"
+  autoload :Scala  , "typed/scala"
 end
 
