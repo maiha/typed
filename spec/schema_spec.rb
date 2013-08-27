@@ -1,6 +1,24 @@
 require "spec_helper"
 
 describe Typed::Schema do
+  describe "#exist?" do
+    let(:hash)   { Typed::Hash.new }
+    let(:schema) { hash.schema }
+
+    context "(not exist)" do
+      specify "false" do
+        schema.exist?(:a).should == false
+      end
+    end
+
+    context "(exist)" do
+      before { hash[:a] = String }
+      specify "true" do
+        schema.exist?(:a).should == true
+      end
+    end
+  end
+
   describe ".schema?" do
     delegate :schema?, :to => "Typed::Schema"
 
