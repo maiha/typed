@@ -1,35 +1,22 @@
 module Typed
   module Scala
-    def vars
-      unless @vars
-        vars = Typed::Hash.new
-        self.class.types.each_pair do |name, obj|
-#          vars.default[name] = obj
-          vars[name] = obj
-        end
-        @vars = vars
-      end
-      return @vars
-    end
-
-    def types
-      self.class.types
-    end
-
-    module Var
+    module Variables
       ParseError = Class.new(SyntaxError)
-      def types
-        @types ||= {}
+
+      def self.apply(klass, type, caller, obj)
+        name = parse(type, caller)
+        define(klass, type, name, obj)
       end
 
-      def register_var(name, obj)
-        types[name] = obj
+      def self.define(klass, type, name, obj)
+        vars = klass.__send__("#{type}s")
+        vars[name] = obj
         
-        define_method(name) { vars[name.to_s] }
-        define_method("#{name}=") {|v| vars[name.to_s] = v }
+        klass.define_method(name) { attrs[name.to_s] }
+        klass.define_method("#{name}=") {|v| attrs[name.to_s] = v }
       end
 
-      def parse_var_name(caller)
+      def self.parse(type, caller)
         # "/tmp/adsvr/dsl.rb:23"
         case caller
         when %r{^(.*?):(\d+)}o
@@ -37,23 +24,50 @@ module Typed
           line = $2.to_i
           @lines ||= File.readlines(file)
           case @lines[line-1].to_s
-          when /^\s*var\s+(\S+)\s+=/o
+          when /^\s*#{type}\s+(\S+)\s+=/
             return $1
           else
             raise ParseError, "#{self} from file:#{file} (line: #{line})"
           end
         else
-          raise ParseError, "#{self} from caller:#{caller[0]}"
+          raise ParseError, "#{self} from caller:#{caller}"
         end
       end
 
+      def self.build(klass)
+        attrs = Typed::Hash.new
+        klass.vals.each_pair{|name, obj| attrs[name] = obj}
+        klass.vars.each_pair{|name, obj| attrs[name] = obj}
+        return attrs
+      end
+    end
+
+    def attrs
+      @attrs ||= Typed::Scala::Variables.build(self.class)
+    end
+
+    module Val
+      def vals
+        @vals ||= {}
+      end
+
+      def val(obj)
+        Typed::Scala::Variables.apply(self, :val, caller[0], obj)
+      end
+    end
+
+    module Var
+      def vars
+        @vars ||= {}
+      end
+
       def var(obj)
-        name = parse_var_name(caller[0])
-        register_var(name, obj)
+        Typed::Scala::Variables.apply(self, :var, caller[0], obj)
       end
     end
 
     def self.included(klass)
+      klass.extend Scala::Val
       klass.extend Scala::Var
     end
   end
