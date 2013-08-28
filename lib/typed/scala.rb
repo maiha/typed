@@ -5,7 +5,7 @@ module Typed
     ### instance methods
 
     def attrs
-      @attrs ||= Typed::Scala::Variables.build(self.class)
+      @attrs ||= Typed::Scala::Variables.build_attrs(self.class)
     end
 
     def [](key)
@@ -32,7 +32,7 @@ module Typed
 
     module Val
       def vals
-        @vals ||= ActiveSupport::OrderedHash.new
+        @typed_scala_vals ||= Typed::Scala::Variables.build_variables(self, :val)
       end
 
       def val(obj)
@@ -42,7 +42,7 @@ module Typed
 
     module Var
       def vars
-        @vars ||= ActiveSupport::OrderedHash.new
+        @typed_scala_vars ||= Typed::Scala::Variables.build_variables(self, :var)
       end
 
       def var(obj)
@@ -90,11 +90,23 @@ module Typed
         end
       end
 
-      def self.build(klass)
+      def self.build_attrs(klass)
         attrs = Typed::Hash.new
         klass.vals.each_pair{|name, obj| attrs[name] = obj}
         klass.vars.each_pair{|name, obj| attrs[name] = obj}
         return attrs
+      end
+
+      def self.build_variables(klass, type)
+        variables = ActiveSupport::OrderedHash.new
+
+        klass.ancestors[1 .. -1].select{|k| k < Typed::Scala}.reverse.each do |k|
+          k.instance_eval("[@typed_scala_#{type}s].compact").each do |hash|
+            variables.merge!(hash)
+          end
+        end
+
+        return variables
       end
     end
 
@@ -102,6 +114,8 @@ module Typed
     ### module
 
     def self.included(klass)
+      super
+
       klass.extend Scala::Val
       klass.extend Scala::Var
     end

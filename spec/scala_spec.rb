@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Typed::Scala do
   before { @loaded = [] }
-  after { @loaded.each{|klass| Object.__send__(:remove_const, klass) if Object.const_defined?(klass) } }
+  after  { @loaded.each{|klass| Object.__send__(:remove_const, klass) if Object.const_defined?(klass) } }
       
   def source(klass, code)
     path = tmp_path("scala/inline.rb")
@@ -11,6 +11,9 @@ describe Typed::Scala do
     load(path.to_s)
     @loaded << klass
   end
+
+  ######################################################################
+  ### Basic usage
 
   describe "User" do
     before { source("User", <<-EOF)
@@ -55,6 +58,9 @@ describe Typed::Scala do
       end
     end
   end
+
+  ######################################################################
+  ### Two files at same time
 
   context "(two files)" do
     before { source("A", <<-EOF)
@@ -141,5 +147,97 @@ describe Typed::Scala do
       end
     end
   end
-end
 
+  ######################################################################
+  ### Inheritance
+
+  context "(Point3D < Point2D)" do
+    before { source("Point2D", <<-EOF)
+      class Point2D
+        include Typed::Scala
+        val x = Fixnum
+        val y = Fixnum
+      end
+      EOF
+    }
+     
+    before { source("Point3D", <<-EOF)
+      class Point3D < Point2D
+        val z = Fixnum
+      end
+      EOF
+    }
+
+    context "Point2D" do
+      specify "contains x,y" do
+        Point2D.vals.keys.should == %w( x y )
+      end
+
+      describe "#x, #x=" do
+        specify "exist" do
+          p = Point2D.new
+          p.x = 1
+          p.x.should == 1
+          lambda { p.x = 2 }.should raise_error(Typed::FixedValue)
+        end
+      end
+
+      describe "#z" do
+        specify "not exist" do
+          p = Point2D.new
+          lambda { p["z"] = 3 }.should raise_error(Typed::NotDefined)
+          lambda { p.z = 3    }.should raise_error(NoMethodError)
+        end
+      end
+    end
+
+    context "Point3D" do
+      specify "contains x,y,z" do
+        Point3D.vals.keys.should == %w( x y z )
+      end
+
+      describe "#x, #x=, [x], [x]=" do
+        specify "exist" do
+          p = Point3D.new
+          p.x = 1
+          p.x.should == 1
+          p["x"].should == 1
+          lambda { p.x = 2    }.should raise_error(Typed::FixedValue)
+          lambda { p["x"] = 2 }.should raise_error(Typed::FixedValue)
+        end
+      end
+
+      describe "#z, #z=, [z], [z]=" do
+        specify "exist" do
+          p = Point3D.new
+          p.z = 1
+          p.z.should == 1
+          p["z"].should == 1
+          lambda { p.z = 2    }.should raise_error(Typed::FixedValue)
+          lambda { p["z"] = 2 }.should raise_error(Typed::FixedValue)
+        end
+      end
+    end
+  end
+
+  ######################################################################
+  ### TODO
+
+  describe "check method conflictions like [], []=" do
+    specify do
+      pending "will be implemented in version 0.3.0"
+    end
+  end
+
+  context "when val or var are overridden in same context" do
+    specify do
+      pending "will be implemented in version 0.3.0"
+    end
+  end
+
+  context "when val or var are overridden in subclass" do
+    specify do
+      pending "will be implemented in version 0.3.0"
+    end
+  end
+end
