@@ -1,22 +1,13 @@
 require "spec_helper"
 
 describe Typed::Scala do
-  before { @loaded = [] }
-  after  { @loaded.each{|klass| Object.__send__(:remove_const, klass) if Object.const_defined?(klass) } }
-      
-  def source(klass, code)
-    path = tmp_path("scala/inline.rb")
-    path.parent.mkpath
-    path.open("w+"){|f| f.puts(code) }
-    load(path.to_s)
-    @loaded << klass
-  end
+  include_context "scala_source"
 
   ######################################################################
   ### Basic usage
 
   describe "User" do
-    before { source("User", <<-EOF)
+    before { scala_source("User", <<-EOF)
       class User
         include Typed::Scala
 
@@ -80,7 +71,7 @@ describe Typed::Scala do
   ### Column names
 
   context "(attrs)" do
-    before { source("A", <<-EOF)
+    before { scala_source("A", <<-EOF)
       class A
         include Typed::Scala
         val key   = String
@@ -118,7 +109,7 @@ describe Typed::Scala do
   ### Two files at same time
 
   context "(two files)" do
-    before { source("A", <<-EOF)
+    before { scala_source("A", <<-EOF)
       class A
         include Typed::Scala
         val key = String
@@ -127,7 +118,7 @@ describe Typed::Scala do
       EOF
     }
      
-    before { source("B", <<-EOF)
+    before { scala_source("B", <<-EOF)
       class B
         include Typed::Scala
         val key = Fixnum
@@ -207,7 +198,7 @@ describe Typed::Scala do
   ### Inheritance
 
   context "(Point3D < Point2D)" do
-    before { source("Point2D", <<-EOF)
+    before { scala_source("Point2D", <<-EOF)
       class Point2D
         include Typed::Scala
         val x = Fixnum
@@ -216,7 +207,7 @@ describe Typed::Scala do
       EOF
     }
      
-    before { source("Point3D", <<-EOF)
+    before { scala_source("Point3D", <<-EOF)
       class Point3D < Point2D
         val z = Fixnum
       end
