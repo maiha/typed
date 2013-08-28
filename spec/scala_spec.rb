@@ -33,19 +33,31 @@ describe Typed::Scala do
       its(:vals) { should == { "key" => String } }
       its(:vars) { should be_kind_of ActiveSupport::OrderedHash }
       its(:vars) { should == { "name" => String, "age" => Fixnum } }
+
+      describe ".build" do
+        # "creates a new instance"
+        its(:build) { should be_kind_of User }
+
+        specify do
+          User.build.should be_kind_of(User)
+          User.build(:name=>"foo").name.should == "foo"
+          User.build(:key=>"x", :name=>"foo").key.should == "x"
+        end
+      end
     end
 
     context "(instance)" do
       let(:user) { User.new }
       subject    { user}
 
-      it { should respond_to(:key) }
-      it { should respond_to(:name) }
-      it { should respond_to(:age) }
-      it { should_not respond_to(:xxx) }
-      it { should respond_to(:attrs) }
-      it { should respond_to(:[]) }
-      it { should respond_to(:[]=) }
+      describe "attributes" do
+        it { should respond_to(:key) }
+        it { should respond_to(:name) }
+        it { should respond_to(:age) }
+        it { should respond_to(:[]) }
+        it { should respond_to(:[]=) }
+        it { should_not respond_to(:xxx) }
+      end
 
       describe "#name=" do
         specify "accept 'maiha'" do
@@ -55,6 +67,49 @@ describe Typed::Scala do
         specify "reject 100" do
           lambda { user.name = 100 }.should raise_error(TypeError)
         end
+      end
+
+      describe "enumerable" do
+        it { should respond_to(:each) }
+        it { should respond_to(:map) }
+      end
+    end
+  end
+
+  ######################################################################
+  ### Column names
+
+  context "(attrs)" do
+    before { source("A", <<-EOF)
+      class A
+        include Typed::Scala
+        val key   = String
+        var attrs = Hash
+      end
+      EOF
+    }
+
+    describe "#attrs, #attrs=" do
+      subject { A.new }
+
+      specify do
+        a = A.new
+        a.attrs = {:x=>1}
+        a.attrs.should == {:x=>1}
+      end
+    end
+
+    describe ".build" do
+      context "()" do
+        subject { A.build }
+        specify { lambda { subject.key   }.should raise_error(Typed::NotDefined) }
+        specify { lambda { subject.attrs }.should raise_error(Typed::NotDefined) }
+      end
+
+      context '(:key=>"x", :attrs=>{:a=>1})' do
+        subject { A.build(:key=>"x", :attrs=>{:a=>1}) }
+        its(:key)   { should == "x" }
+        its(:attrs) { should == {:a=>1} }
       end
     end
   end

@@ -4,24 +4,30 @@ module Typed
     ######################################################################
     ### instance methods
 
-    def attrs
-      @attrs ||= Typed::Scala::Variables.build_attrs(self.class)
+    include Enumerable
+
+    def each(&block)
+      __attrs__.each_pair(&block)
+    end
+
+    def __attrs__
+      @__attrs__ ||= Typed::Scala::Variables.build_attrs(self.class)
     end
 
     def [](key)
-      if attrs.schema.exist?(key)
-        attrs[key.to_s]
+      if __attrs__.schema.exist?(key)
+        __attrs__[key.to_s]
       else
         raise Typed::NotDefined, "#{key} is not a member of #{self.class}"
       end
     end
 
     def []=(key, val)
-      if attrs.schema.exist?(key)
-        if self.class.vals[key.to_s] and attrs.exist?(key)
+      if __attrs__.schema.exist?(key)
+        if self.class.vals[key.to_s] and __attrs__.exist?(key)
           raise Typed::FixedValue, "reassignment to #{key}"
         end
-        attrs[key.to_s] = val
+        __attrs__[key.to_s] = val
       else
         raise Typed::NotDefined, "#{key} is not a member of #{self.class}"
       end
@@ -29,6 +35,16 @@ module Typed
 
     ######################################################################
     ### provided api
+
+    module Build
+      def build(hash = {})
+        obj = new
+        hash.each_pair do |k,v|
+          obj[k] = v
+        end
+        return obj
+      end
+    end
 
     module Val
       def vals
@@ -64,11 +80,16 @@ module Typed
       def self.define(klass, type, name, obj)
         vars = klass.__send__("#{type}s")
         vars[name] = obj
-        
-        klass.class_eval do
-          define_method(name) { self[name.to_s] }
-          define_method("#{name}=") {|v| self[name.to_s] = v }
-        end
+
+        klass.class_eval <<-STR, __FILE__, __LINE__ + 1
+          def #{name}
+            self['#{name}']
+          end
+
+          def #{name}=(v)
+            self['#{name}'] = v
+          end
+        STR
       end
 
       def self.parse(klass, type, caller)
@@ -118,6 +139,7 @@ module Typed
 
       klass.extend Scala::Val
       klass.extend Scala::Var
+      klass.extend Scala::Build
     end
   end
 end
