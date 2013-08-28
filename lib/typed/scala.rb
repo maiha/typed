@@ -32,7 +32,7 @@ module Typed
 
     module Val
       def vals
-        @vals ||= {}
+        @vals ||= ActiveSupport::OrderedHash.new
       end
 
       def val(obj)
@@ -42,7 +42,7 @@ module Typed
 
     module Var
       def vars
-        @vars ||= {}
+        @vars ||= ActiveSupport::OrderedHash.new
       end
 
       def var(obj)

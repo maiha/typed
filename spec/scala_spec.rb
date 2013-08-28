@@ -26,7 +26,9 @@ describe Typed::Scala do
      
     context "(class)" do
       subject { User }
+      its(:vals) { should be_kind_of ActiveSupport::OrderedHash }
       its(:vals) { should == { "key" => String } }
+      its(:vars) { should be_kind_of ActiveSupport::OrderedHash }
       its(:vars) { should == { "name" => String, "age" => Fixnum } }
     end
 
