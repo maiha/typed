@@ -82,6 +82,26 @@ We need some typed variables to avoid silly and stealth mistakes.
   => 1
 
 
+== Experimental : Typed::Scala
+
+Love 'val', 'var' of Scala!!
+
+  # [NOTE] val and var must be written in source files.
+  % cat user.rb
+  class User
+    include Typed::Scala
+    val nick  = String
+    var pass  = String
+  end
+  % bundle exec irb -r typed -r user
+  >> u = User.new
+  >> u.nick
+  Typed::NotDefined: 'nick' is not initialized
+  >> u.nick = "maiha"
+  >> u.nick = "no name"
+  => Typed::FixedValue: reassignment to nick
+
+
 == REQUIREMENTS:
 
 * activesupport gem
