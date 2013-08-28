@@ -36,7 +36,7 @@ module Typed
     ######################################################################
     ### provided api
 
-    module Build
+    module Builder
       def build(hash = {})
         obj = new
         hash.each_pair do |k,v|
@@ -46,23 +46,31 @@ module Typed
       end
     end
 
-    module Val
-      def vals
-        @typed_scala_vals ||= Typed::Scala::Variables.build_variables(self, :val)
+    module Parser
+      # Modifiers
+      def override(*args)
       end
 
+      def lazy(*args)    ; end
+
+      # Declarations
       def val(obj)
         Typed::Scala::Variables.apply(self, :val, caller[0], obj)
-      end
-    end
-
-    module Var
-      def vars
-        @typed_scala_vars ||= Typed::Scala::Variables.build_variables(self, :var)
       end
 
       def var(obj)
         Typed::Scala::Variables.apply(self, :var, caller[0], obj)
+        return :var
+      end
+    end
+
+    module Reflect
+      def vals
+        @typed_scala_vals ||= Typed::Scala::Variables.build_variables(self, :val)
+      end
+
+      def vars
+        @typed_scala_vars ||= Typed::Scala::Variables.build_variables(self, :var)
       end
     end
 
@@ -101,8 +109,9 @@ module Typed
 
           lines = (@lines ||= {})[klass] ||= File.readlines(file)
           case lines[lineno-1].to_s
-          when /^\s*#{type}\s+(\S+)\s+=/
-            return $1
+          when /^\s*(override\s+)?(lazy\s+)?#{type}\s+(\S+)\s+=/
+            override, lazy, name = $1, $2, $3
+            return name
           else
             raise ParseError, "#{self} from #{caller}"
           end
@@ -137,9 +146,9 @@ module Typed
     def self.included(klass)
       super
 
-      klass.extend Scala::Val
-      klass.extend Scala::Var
-      klass.extend Scala::Build
+      klass.extend Scala::Reflect
+      klass.extend Scala::Parser
+      klass.extend Scala::Builder
     end
   end
 end
