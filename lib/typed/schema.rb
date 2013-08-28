@@ -45,6 +45,10 @@ module Typed
       @types[key.to_s].value
     end
 
+    def exist?(key)
+      @types.key?(key.to_s)
+    end
+
     def declare!(key, declare)
       case declare.must.be.kind_of(Explicit, Implicit)
       when Explicit
