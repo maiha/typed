@@ -19,6 +19,9 @@ module Typed
       def define_schema(dcl)
         vars = dcl.klass.__send__("#{dcl.type}s")
         vars[dcl.name] = dcl.value
+
+        # new feature
+        dcl.klass.variables[dcl.name] = dcl.value
       end
 
       def define_method(dcl)
@@ -61,6 +64,18 @@ module Typed
         klass.vals.each_pair{|name, obj| attrs[name] = obj}
         klass.vars.each_pair{|name, obj| attrs[name] = obj}
         return attrs
+      end
+
+      def build(klass)
+        variables = ActiveSupport::OrderedHash.new
+
+        klass.ancestors[1 .. -1].select{|k| k < Typed::Scala}.reverse.each do |k|
+          k.instance_eval("[@variables].compact").each do |hash|
+            variables.merge!(hash)
+          end
+        end
+
+        return variables
       end
 
       def build_variables(klass, type)

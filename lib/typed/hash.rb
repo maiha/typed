@@ -6,7 +6,7 @@ module Typed
       :schema => true,
     }
 
-    delegate :keys, :to=>"@hash"
+    delegate :keys, :size, :to=>"@hash"
     attr_reader :changes
     attr_reader :events
 

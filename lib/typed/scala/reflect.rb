@@ -5,6 +5,11 @@ module Typed
     ### Reflect
 
     module Reflect
+      # variable synthesis
+      def variables
+        @variables ||= Typed::Scala::Variables.build(self)
+      end
+
       def vals
         @typed_scala_vals ||= Typed::Scala::Variables.build_variables(self, :val)
       end
