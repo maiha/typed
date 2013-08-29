@@ -16,19 +16,33 @@ describe Typed::Scala do
 #  def isDclIntro: Boolean = in.token match {
 #      case VAL | VAR | DEF | TYPE => true
 
-  describe "override" do
-    before { scala_source("User", <<-EOF)
-      class User
+#  describe "conflicted variable names" do
+  pending "conflicted variable names" do
+    context "(without override modifier)"
+
+    let(:source) { <<-EOF
+      class T
         include Typed::Scala
         
-        val key  = String
-        override var age  = Fixnum
+        val t = String
+      end
+
+      class U < T
+        val t = Fixnum
       end
       EOF
     }
 
     specify do
+      lambda { scala_source("User", source) }.should raise_error(TypeError)
     end
 
+    specify do
+      scala_source("User", source)
+      T.vals.should == {}
+    end
+
+    context "(with override modifier)" do
+    end
   end
 end

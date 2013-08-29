@@ -64,6 +64,7 @@ module Typed
       end
 
       def build_variables(klass, type)
+#        variables = Typed::Hash.new
         variables = ActiveSupport::OrderedHash.new
 
         klass.ancestors[1 .. -1].select{|k| k < Typed::Scala}.reverse.each do |k|

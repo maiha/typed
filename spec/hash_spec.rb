@@ -29,6 +29,13 @@ describe Typed::Hash do
     data["a"].should == 2
   end
 
+  describe "enumerable" do
+    it { should respond_to(:each) }
+    it { should respond_to(:each_pair) }
+    it { should respond_to(:each_key) }
+    it { should respond_to(:each_value) }
+  end
+
   describe "#[]" do
     it "should raise NotDefined if value not exists" do
       lambda {
