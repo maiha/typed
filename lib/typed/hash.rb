@@ -6,12 +6,12 @@ module Typed
       :schema => true,
     }
 
-    delegate :keys, :to=>"@hash"
+    delegate :keys, :size, :to=>"@hash"
     attr_reader :changes
     attr_reader :events
 
     def initialize(options = {})
-      @hash    = {}
+      @hash    = ActiveSupport::OrderedHash.new
       @options = DEFAULT_OPTIONS.merge(options.must(::Hash))
       @schema  = Schema.new
       @default = Default.new(self)
@@ -102,11 +102,26 @@ module Typed
     ######################################################################
     ### Hash compat
 
+    def each_pair(&block)
+      keys.each do |key|
+        val = self[key]
+        block.call(key,val)
+      end
+    end
+
     def each(&block)
       keys.each do |key|
         val = self[key]
         block.call([key,val])
       end
+    end
+
+    def each_key(&block)
+      keys.each(&block)
+    end
+
+    def each_value(&block)
+      each_pair{|k,v| block.call(v)}
     end
 
     def values

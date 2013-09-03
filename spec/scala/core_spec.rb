@@ -18,52 +18,59 @@ describe Typed::Scala do
       EOF
     }
      
-    context "(class)" do
-      subject { User }
-      its(:vals) { should be_kind_of ActiveSupport::OrderedHash }
-      its(:vals) { should == { "key" => String } }
-      its(:vars) { should be_kind_of ActiveSupport::OrderedHash }
-      its(:vars) { should == { "name" => String, "age" => Fixnum } }
+    let(:user) { User.new }
+    subject    { user}
 
-      describe ".build" do
-        # "creates a new instance"
-        its(:build) { should be_kind_of User }
+    describe ".variables" do
+      subject { User.variables }
+      its(:keys) { should == %w( key name age ) }
+      its(["key" ]) { should == String }
+      its(["name"]) { should == String }
+      its(["age" ]) { should == Fixnum }
 
-        specify do
-          User.build.should be_kind_of(User)
-          User.build(:name=>"foo").name.should == "foo"
-          User.build(:key=>"x", :name=>"foo").key.should == "x"
+      specify "#each_pair" do
+        hash = {}
+        subject.each_pair do |name, type|
+          hash[name] = type
         end
+        hash.should == {
+          "key"  => String,
+          "name" => String,
+          "age"  => Fixnum,
+        }
       end
     end
 
-    context "(instance)" do
-      let(:user) { User.new }
-      subject    { user}
+    describe "attributes" do
+      it { should respond_to(:key) }
+      it { should respond_to(:name) }
+      it { should respond_to(:age) }
+      it { should respond_to(:[]) }
+      it { should respond_to(:[]=) }
+      it { should_not respond_to(:xxx) }
+    end
 
-      describe "attributes" do
-        it { should respond_to(:key) }
-        it { should respond_to(:name) }
-        it { should respond_to(:age) }
-        it { should respond_to(:[]) }
-        it { should respond_to(:[]=) }
-        it { should_not respond_to(:xxx) }
+    describe "#name=" do
+      specify "accept 'maiha'" do
+        (user.name = 'maiha').should == 'maiha'
       end
 
-      describe "#name=" do
-        specify "accept 'maiha'" do
-          (user.name = 'maiha').should == 'maiha'
-        end
-
-        specify "reject 100" do
-          lambda { user.name = 100 }.should raise_error(TypeError)
-        end
+      specify "reject 100" do
+        lambda { user.name = 100 }.should raise_error(TypeError)
       end
+    end
 
-      describe "enumerable" do
-        it { should respond_to(:each) }
-        it { should respond_to(:map) }
-      end
+    describe "enumerable" do
+      it { should respond_to(:each) }
+      it { should respond_to(:map) }
+    end
+
+    describe "#__attrs__" do
+      subject { User.apply!("001", "aya", 12).__attrs__ }
+
+      its(:size  ) { should == 3 }
+      its(:keys  ) { should == %w( key name age ) }
+      its(:values) { should == ["001", "aya", 12] }
     end
   end
 end
