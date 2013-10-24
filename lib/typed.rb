@@ -4,6 +4,8 @@ require "typed/version"
 require "typed/hash"
 
 module Typed
+  Boolean = Must::Boolean
+
   NotDefined = Class.new(RuntimeError)
   FixedValue = Class.new(RuntimeError)
 
