@@ -27,12 +27,6 @@ describe Typed::Scala do
     end
 
     describe ".build" do
-      context "()" do
-        subject { A.build }
-        specify { lambda { subject.key   }.should raise_error(Typed::NotDefined) }
-        specify { lambda { subject.attrs }.should raise_error(Typed::NotDefined) }
-      end
-
       context '(:key=>"x", :attrs=>{:a=>1})' do
         subject { A.build(:key=>"x", :attrs=>{:a=>1}) }
         its(:key)   { should == "x" }

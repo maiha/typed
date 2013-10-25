@@ -10,7 +10,7 @@ module Typed
 
       def apply(klass, type, caller, obj)
         dcl = parse(klass, type, caller)
-        dcl.value = obj
+        dcl.value = (obj == Typed::Hash) ? ::Hash : obj
 
         define_schema(dcl)
         define_method(dcl)
@@ -27,7 +27,7 @@ module Typed
       def define_method(dcl)
         name  = dcl.name
         klass = dcl.klass
-        typed = [dcl.value].flatten.map{|i| i == ::Hash ? '::Hash' : i.to_s}.join(', ')
+        typed = [dcl.value].flatten.map{|k| (k == ::Hash) ? '::Hash' : k.to_s}.join(', ')
 
         dcl.klass.class_eval <<-STR, __FILE__, __LINE__ + 1
           def #{name}
