@@ -15,19 +15,16 @@ module Typed
       end
 
       def [](key)
-        if __attrs__.schema.exist?(key)
-          __attrs__[key.to_s]
+        if self.class.variables[key.to_s]
+          self.__send__(key)
         else
           raise Typed::NotDefined, "#{key} is not a member of #{self.class}"
         end
       end
 
       def []=(key, val)
-        if __attrs__.schema.exist?(key)
-          if self.class.vals[key.to_s] and __attrs__.exist?(key)
-            raise Typed::FixedValue, "reassignment to #{key}"
-          end
-          __attrs__[key.to_s] = val
+        if self.class.variables[key.to_s]
+          self.__send__("#{key}=", val)
         else
           raise Typed::NotDefined, "#{key} is not a member of #{self.class}"
         end

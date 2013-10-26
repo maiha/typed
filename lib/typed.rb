@@ -4,8 +4,11 @@ require "typed/version"
 require "typed/hash"
 
 module Typed
-  NotDefined = Class.new(RuntimeError)
-  FixedValue = Class.new(RuntimeError)
+  Boolean = Must::Boolean
+
+  NotDefined   = Class.new(RuntimeError)
+  FixedValue   = Class.new(RuntimeError)
+  SizeMismatch = Class.new(RuntimeError)
 
   autoload :Schema , "typed/schema"
   autoload :Default, "typed/default"

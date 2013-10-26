@@ -10,7 +10,7 @@ module Typed
 
       def apply(klass, type, caller, obj)
         dcl = parse(klass, type, caller)
-        dcl.value = obj
+        dcl.value = (obj == Typed::Hash) ? ::Hash : obj
 
         define_schema(dcl)
         define_method(dcl)
@@ -25,14 +25,26 @@ module Typed
       end
 
       def define_method(dcl)
-        name = dcl.name
+        name  = dcl.name
+        klass = dcl.klass
+        typed = [dcl.value].flatten.map{|k| (k == ::Hash) ? '::Hash' : k.to_s}.join(', ')
+
         dcl.klass.class_eval <<-STR, __FILE__, __LINE__ + 1
           def #{name}
-            self['#{name}']
+            k = '#{name}'
+            h = __attrs__
+            raise Typed::NotDefined, "'#{name}' is not initialized" unless h.key?(k)
+            return h[k]
           end
 
           def #{name}=(v)
-            self['#{name}'] = v
+            k = '#{name}'
+            h = __attrs__
+            if self.class.vals[k] and h.key?(k)
+              raise Typed::FixedValue, "reassignment to %s" % k
+            end
+            v.must(#{typed}) { raise TypeError, '#{klass}##{name}= expected #{typed} but got %s' % [v.class] }
+            h[k] = v
           end
         STR
       end
@@ -60,10 +72,7 @@ module Typed
       end
 
       def build_attrs(klass)
-        attrs = Typed::Hash.new
-        klass.vals.each_pair{|name, obj| attrs[name] = obj}
-        klass.vars.each_pair{|name, obj| attrs[name] = obj}
-        return attrs
+        return {}
       end
 
       def build(klass)
