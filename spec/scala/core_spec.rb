@@ -65,9 +65,10 @@ describe Typed::Scala do
       it { should respond_to(:map) }
     end
 
-    describe "#__attrs__" do
-      subject { User.apply!("001", "aya", 12).__attrs__ }
+    describe "attributes" do
+      subject { User.attrs(User.apply!("001", "aya", 12)) }
 
+      its(:class ) { should == Hash }
       its(:size  ) { should == 3 }
       its(:keys  ) { should == %w( key name age ) }
       its(:values) { should == ["001", "aya", 12] }

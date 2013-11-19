@@ -26,9 +26,9 @@ describe Typed::Scala do
       end
     end
 
-    describe ".build" do
+    describe ".build!" do
       context '(:key=>"x", :attrs=>{:a=>1})' do
-        subject { A.build(:key=>"x", :attrs=>{:a=>1}) }
+        subject { A.build!(:key=>"x", :attrs=>{:a=>1}) }
         its(:key)   { should == "x" }
         its(:attrs) { should == {:a=>1} }
       end

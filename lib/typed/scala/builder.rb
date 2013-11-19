@@ -1,16 +1,33 @@
 module Typed
   module Scala
 
-    ######################################################################
-    ### Builder
     module Builder
+      ######################################################################
+      ### Build instances
+
+      # check hash except arg size. (valid: return hash, invalid: raised)
       def check(hash)
         build(hash)
         return hash
       end
 
-      # Build instance from hash
+      # check hash strictly. (valid: return hash, invalid: raised)
+      def check!(hash)
+        build!(hash)
+        return hash
+      end
+
+      # Build instance from hash (check only types)
       def build(hash)
+        obj = new
+        hash.each_pair do |k,v|
+          obj[k] = v if variables[k]
+        end
+        return obj
+      end
+
+      # Build instance from hash strictly. (check both arg size and types)
+      def build!(hash)
         hash.must(::Hash) { raise ArgumentError, "#{self} expects Hash, but got #{hash.class}" }
 
         if hash.size != variables.size
@@ -23,6 +40,7 @@ module Typed
           raise Typed::SizeMismatch, msg
         end
 
+        # 'build' just ignore unknown fields, but 'build!' raise errors
         obj = new
         hash.each_pair do |k,v|
           obj[k] = v
@@ -30,12 +48,8 @@ module Typed
         return obj
       end
 
-      # Build instance from array
+      # Build instance from array. (check only types)
       def apply(*args)
-        if args.size > variables.size
-          raise Typed::SizeMismatch, "#{self}.apply expects #{variables.size} args, but got #{args.size}"
-        end
-
         obj = new
         variables.each_key do |name|
           val = args.shift or next
@@ -44,7 +58,7 @@ module Typed
         return obj
       end
 
-      # Build instance from array strictly. Raised when args size is differ.
+      # Build instance from array strictly. (check both arg size and types)
       def apply!(*args)
         if args.size != variables.size
           raise Typed::SizeMismatch, "#{self} expects #{variables.size} args, but got #{args.size}"
@@ -55,6 +69,29 @@ module Typed
           obj[name] = args.shift
         end
         return obj
+      end
+
+      ######################################################################
+      ### Extract attrs
+
+      def attrs(obj)
+        obj.must(self).__attrs__
+      end
+
+      def unbuild(obj)
+        raise NotImplementedError
+      end
+
+      def unbuild!(obj)
+        raise NotImplementedError
+      end
+
+      def unapply(obj)
+        raise NotImplementedError
+      end
+
+      def unapply!(obj)
+        raise NotImplementedError
       end
     end
 
