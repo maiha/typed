@@ -29,6 +29,15 @@ module Typed
           raise Typed::NotDefined, "#{key} is not a member of #{self.class}"
         end
       end
+
+      def ==(other)
+        return false unless other.is_a?(self.class)
+        return __attrs__ == other.__attrs__
+      end
+
+      def to_s
+        __attrs__.inspect
+      end
     end
   end
 end
