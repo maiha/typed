@@ -28,6 +28,10 @@ module Typed
         name  = dcl.name
         klass = dcl.klass
         typed = [dcl.value].flatten.map{|k| (k == ::Hash) ? '::Hash' : k.to_s}.join(', ')
+        type_checking = <<-STR
+          v.must(#{typed}) { raise TypeError, '#{klass}##{name}= expected #{typed} but got %s' % [v.class] }
+        STR
+        type_checking = "unless v == nil then #{ type_checking } end" if dcl.mods.include?('maybe')
 
         dcl.klass.class_eval <<-STR, __FILE__, __LINE__ + 1
           def #{name}
@@ -43,7 +47,7 @@ module Typed
             if self.class.vals[k] and h.key?(k)
               raise Typed::FixedValue, "reassignment to %s" % k
             end
-            v.must(#{typed}) { raise TypeError, '#{klass}##{name}= expected #{typed} but got %s' % [v.class] }
+            #{ type_checking }
             h[k] = v
           end
         STR
@@ -58,10 +62,10 @@ module Typed
 
           lines = (@lines ||= {})[klass] ||= File.readlines(file)
           case lines[lineno-1].to_s
-          when /^\s*(override\s+)?(lazy\s+)?(val|var)\s+(\S+)\s+=/
-            mods = [$1, $2].compact.map(&:strip)
-            type = $3
-            name = $4
+          when /^\s*(override\s+)?(lazy\s+)?(maybe\s+)?(val|var)\s+(\S+)\s+=/
+            mods = [$1, $2, $3].compact.map(&:strip)
+            type = $4
+            name = $5
             return Declaration.new(klass, name, type, mods)
           else
             raise ParseError, "#{self} from #{caller}"

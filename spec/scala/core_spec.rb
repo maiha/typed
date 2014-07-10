@@ -14,6 +14,7 @@ describe Typed::Scala do
         val key  = String
         var name = String
         var age  = Fixnum
+        maybe var email = String
       end
       EOF
     }
@@ -23,10 +24,11 @@ describe Typed::Scala do
 
     describe ".variables" do
       subject { User.variables }
-      its(:keys) { should == %w( key name age ) }
+      its(:keys) { should == %w( key name age email) }
       its(["key" ]) { should == String }
       its(["name"]) { should == String }
       its(["age" ]) { should == Fixnum }
+      its(["email"]) { should == String }
 
       specify "#each_pair" do
         hash = {}
@@ -34,9 +36,10 @@ describe Typed::Scala do
           hash[name] = type
         end
         hash.should == {
-          "key"  => String,
-          "name" => String,
-          "age"  => Fixnum,
+          "key"   => String,
+          "name"  => String,
+          "age"   => Fixnum,
+          "email" => String
         }
       end
     end
@@ -45,6 +48,7 @@ describe Typed::Scala do
       it { should respond_to(:key) }
       it { should respond_to(:name) }
       it { should respond_to(:age) }
+      it { should respond_to(:email) }
       it { should respond_to(:[]) }
       it { should respond_to(:[]=) }
       it { should_not respond_to(:xxx) }
@@ -55,10 +59,29 @@ describe Typed::Scala do
         (user.name = 'maiha').should == 'maiha'
       end
 
+      specify "reject nil" do
+        lambda { user.name = nil }.should raise_error(TypeError)
+      end
+
       specify "reject 100" do
         lambda { user.name = 100 }.should raise_error(TypeError)
       end
+
     end
+
+    describe "#email=" do
+      specify "accept 'foo@bar'" do
+        (user.email = 'foo@bar').should == 'foo@bar'
+      end
+
+      specify 'accept nil' do
+        (user.email = nil).should == nil
+      end
+
+      specify 'reject 100' do
+        lambda { user.email = 100 }.should raise_error(TypeError)
+      end
+   end
 
     describe "enumerable" do
       it { should respond_to(:each) }
@@ -66,12 +89,12 @@ describe Typed::Scala do
     end
 
     describe "attributes" do
-      subject { User.attrs(User.apply!("001", "aya", 12)) }
+      subject { User.attrs(User.apply!("001", "aya", 12, nil)) }
 
       its(:class ) { should == Hash }
-      its(:size  ) { should == 3 }
-      its(:keys  ) { should == %w( key name age ) }
-      its(:values) { should == ["001", "aya", 12] }
+      its(:size  ) { should == 4 }
+      its(:keys  ) { should == %w( key name age email ) }
+      its(:values) { should == ["001", "aya", 12, nil] }
     end
   end
 end
