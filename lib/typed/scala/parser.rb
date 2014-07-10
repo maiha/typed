@@ -11,6 +11,9 @@ module Typed
       def lazy(*args)
       end
 
+      def maybe(*args)
+      end
+
       # Declarations
       def val(obj)
         Typed::Scala::Variables.apply(self, :val, caller[0], obj)
